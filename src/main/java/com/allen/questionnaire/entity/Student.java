@@ -1,7 +1,6 @@
 package com.allen.questionnaire.entity;
 
 
-import jdk.nashorn.internal.objects.annotations.Constructor;
 import org.hibernate.annotations.GenericGenerator;
 
 import javax.persistence.Column;
@@ -9,6 +8,7 @@ import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
 import javax.validation.constraints.NotEmpty;
+import javax.validation.constraints.NotNull;
 
 @Entity(name = "student")
 public class Student {
@@ -24,7 +24,7 @@ public class Student {
     @NotEmpty
     @Column(name = "name")
     private String name;//姓名
-    @NotEmpty
+    @NotNull
     @Column(name = "sex")
     private int sex;//性别 0: 男 1：女
     @NotEmpty
