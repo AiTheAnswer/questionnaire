@@ -1,11 +1,14 @@
-package com.allen.questionnaire.entity;
+package com.allen.questionnaire.req;
+
+import com.allen.questionnaire.entity.Option;
+import com.allen.questionnaire.entity.Question;
 
 import java.util.List;
 
 /**
  * 问题及选项的实体
  */
-public class QuestionAndOptions {
+public class QuestionAndOptionsReq {
     private Question question;
     private List<Option> optionList;
 

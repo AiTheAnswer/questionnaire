@@ -1,4 +1,4 @@
-package com.allen.questionnaire.entity;
+package com.allen.questionnaire.resp;
 
 public class Resp {
     //状态码
