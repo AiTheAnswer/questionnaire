@@ -10,7 +10,7 @@ import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
 
 /**
- * 问题表的实体类
+ * 问题 实体类
  */
 @Entity(name = "question")
 public class Question {
@@ -23,6 +23,13 @@ public class Question {
     @NotNull
     @Column(name="type")
     private Integer type;//问题类型（是否可以多选 0：不可以  1：可以）
+    @NotEmpty
+    @Column(name = "option_ids")
+    private String optionIds;//问题选项id  多个id之间用逗号隔开
+    @NotEmpty
+    @Column(name = "questionnaire_id")
+    private String questionnaireId;//问卷id
+
 
     @Id
     @GeneratedValue(generator = "system-uuid")
@@ -49,5 +56,21 @@ public class Question {
 
     public void setType(Integer type) {
         this.type = type;
+    }
+
+    public String getOptionIds() {
+        return optionIds;
+    }
+
+    public void setOptionIds(String optionIds) {
+        this.optionIds = optionIds;
+    }
+
+    public String getQuestionnaireId() {
+        return questionnaireId;
+    }
+
+    public void setQuestionnaireId(String questionnaireId) {
+        this.questionnaireId = questionnaireId;
     }
 }

@@ -25,10 +25,13 @@ public class QuestionRecording {
     @NotEmpty
     @Column(name = "option_ids")
     private String optionIds;//选项id,多个选项用逗号隔开
+    @NotEmpty
+    @Column(name = "questionnaire_id")
+    private String questionnaireId;
 
     @Id
     @GeneratedValue(generator = "system-uuid")
-    @GenericGenerator(name = "system-uuid",strategy = "uuid")
+    @GenericGenerator(name = "system-uuid", strategy = "uuid")
     public String getId() {
         return id;
     }
@@ -58,6 +61,15 @@ public class QuestionRecording {
     }
 
     public void setOptionIds(String optionIds) {
+
         this.optionIds = optionIds;
+    }
+
+    public String getQuestionnaireId() {
+        return questionnaireId;
+    }
+
+    public void setQuestionnaireId(String questionnaireId) {
+        this.questionnaireId = questionnaireId;
     }
 }

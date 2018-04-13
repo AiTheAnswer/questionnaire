@@ -1,5 +1,8 @@
 package com.allen.questionnaire.req;
 
+/**
+ * Token  Request
+ */
 public class TokenReq {
     private String token;
 

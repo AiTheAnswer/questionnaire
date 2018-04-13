@@ -12,9 +12,7 @@ import com.allen.questionnaire.util.TextUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 @RestController
 @RequestMapping(value = "/question")
@@ -50,20 +48,27 @@ public class QuestionController {
             resp.setReason("问题选项不能为空");
             return resp;
         }
+        Iterable<Option> optionIterable = optionRepository.saveAll(optionList);
+        if (null == optionIterable) {
+            resp.setStatusCode(500);
+            resp.setReason("保存选项失败");
+            return resp;
+        } else {
+            Iterator<Option> optionIterator = optionIterable.iterator();
+            String strOptions = "";
+            StringBuffer sb = new StringBuffer();
+            while (optionIterator.hasNext()) {
+                Option option = optionIterator.next();
+                sb.append(option.getId() + ",");
+            }
+            String str = sb.toString();
+            strOptions = str.substring(0, str.length() - 1);
+            clientQuestion.setOptionIds(strOptions);
+        }
         Question dbQuestion = questionRepository.save(clientQuestion);
         if (null == dbQuestion) {
             resp.setStatusCode(500);
             resp.setReason("保存问题失败");
-            return resp;
-        }
-        for (Option option : optionList) {
-            option.setQuestionId(dbQuestion.getId());
-
-        }
-        Iterable<Option> options = optionRepository.saveAll(optionList);
-        if (null == options) {
-            resp.setStatusCode(500);
-            resp.setReason("保存选项失败");
             return resp;
         }
         resp.setStatusCode(200);
@@ -90,7 +95,13 @@ public class QuestionController {
         Iterable<Question> questionRepositoryAll = questionRepository.findAll();
         List<QuestionAndOptionsResp> questionAndOptionsResps = new ArrayList<>();
         for (Question question : questionRepositoryAll) {
-            List<Option> options = optionRepository.findByQuestionId(question.getId());
+            String optionIds = question.getOptionIds();
+            String[] optionArray = optionIds.split(",");
+            List<Integer> optionList = new ArrayList<>();
+            for (int i = 0; i < optionArray.length; i++) {
+                optionList.add(Integer.parseInt(optionArray[i]));
+            }
+            List<Option> options = optionRepository.findAllById(optionList);
             QuestionAndOptionsResp questionAndOptionsResp = new QuestionAndOptionsResp(question, options);
             questionAndOptionsResps.add(questionAndOptionsResp);
         }
