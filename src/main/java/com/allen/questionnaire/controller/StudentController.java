@@ -62,8 +62,13 @@ public class StudentController {
            return resp;
        }
         Student student = studentRepository.findByStudentIdAndIdNumber(studentId, idNumber);
-       resp.setStatusCode(200);
-       resp.setObject(student);
+       if(null != student){
+           resp.setStatusCode(200);
+           resp.setObject(student);
+       }else{
+           resp.setStatusCode(400);
+           resp.setReason("学号或身份证号不正确");
+       }
        return resp;
     }
 }
