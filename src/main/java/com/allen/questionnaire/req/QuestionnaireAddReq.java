@@ -1,11 +1,11 @@
 package com.allen.questionnaire.req;
 
 /**
- * 问卷的Request
+ * 添加问卷的Request
  */
-public class QuestionnaireReq {
+public class QuestionnaireAddReq {
     private String questionnaireName;
-    private int categoryId;
+    private Integer categoryId;
 
     public String getQuestionnaireName() {
         return questionnaireName;

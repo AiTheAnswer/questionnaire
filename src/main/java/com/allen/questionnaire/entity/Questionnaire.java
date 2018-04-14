@@ -16,7 +16,7 @@ import javax.validation.constraints.NotNull;
 public class Questionnaire {
     @Id
     @GeneratedValue
-    private int id;
+    private String id;
     @NotEmpty
     @Column(name = "questionnaire_name")
     private String questionnaireName;
@@ -25,11 +25,14 @@ public class Questionnaire {
     private int categoryId;
 
 
-    public Integer getId() {
+    @Id
+    @GeneratedValue(generator = "system-uuid")
+    @GenericGenerator(name="system-uuid" ,strategy = "uuid")
+    public String getId() {
         return id;
     }
 
-    public void setId(Integer id) {
+    public void setId(String id) {
         this.id = id;
     }
 
