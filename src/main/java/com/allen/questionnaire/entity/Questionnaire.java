@@ -8,12 +8,13 @@ import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
 import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
+import java.io.Serializable;
 
 /**
  * 问卷表的实体类
  */
 @Entity(name = "questionnaire")
-public class Questionnaire {
+public class Questionnaire implements Serializable{
     @Id
     @GeneratedValue
     private String id;

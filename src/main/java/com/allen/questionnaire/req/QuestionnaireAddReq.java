@@ -1,9 +1,11 @@
 package com.allen.questionnaire.req;
 
+import java.io.Serializable;
+
 /**
  * 添加问卷的Request
  */
-public class QuestionnaireAddReq {
+public class QuestionnaireAddReq implements Serializable{
     private String questionnaireName;
     private Integer categoryId;
 
