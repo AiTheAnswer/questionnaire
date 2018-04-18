@@ -2,23 +2,22 @@ package com.allen.questionnaire.controller;
 
 import com.allen.questionnaire.entity.*;
 import com.allen.questionnaire.repository.*;
+import com.allen.questionnaire.req.GetQuestionDetailsReq;
 import com.allen.questionnaire.req.QuestionnaireListReq;
-import com.allen.questionnaire.req.QuestionnaireAddReq;
 import com.allen.questionnaire.req.QuestionnaireGetReq;
+import com.allen.questionnaire.resp.GetQuestionDetailsResp;
+import com.allen.questionnaire.resp.QuestionAndOptionsResp;
 import com.allen.questionnaire.resp.QuestionnaireResp;
 import com.allen.questionnaire.resp.Resp;
 import com.allen.questionnaire.util.TextUtil;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Optional;
+import java.lang.reflect.Array;
+import java.util.*;
 
 @RestController
 @RequestMapping
@@ -33,23 +32,24 @@ public class QuestionnaireController {
     QuestionnaireRepository questionnaireRepository;
     @Autowired
     QueRecordingRepository recordingRepository;
+    @Autowired
+    OptionRepository optionRepository;
 
     /**
-     * 添加问卷
+     * 批量添加问卷
      *
      * @param questionnaireListReq
      * @return
      */
-    @Transactional
     @PostMapping(value = "/addQuestionnaires")
-    public Resp addQuestionnaire(@RequestBody QuestionnaireListReq questionnaireListReq) {
+    public Resp addQuestionnaires(@RequestBody QuestionnaireListReq questionnaireListReq) {
         Resp resp = new Resp();
         if (null == questionnaireListReq) {
             resp.setStatusCode(400);
             resp.setReason("参数为空");
             return resp;
         }
-        for (QuestionnaireAddReq questionnaireReq : questionnaireListReq.getmQueList()) {
+        for (Questionnaire questionnaireReq : questionnaireListReq.getQuestionnaires()) {
             if (TextUtil.isEmpty(questionnaireReq.getQuestionnaireName())) {
                 resp.setStatusCode(400);
                 resp.setReason("问卷名称为空");
@@ -67,8 +67,8 @@ public class QuestionnaireController {
                 return resp;
             }
         }
-        List<Questionnaire> questionnaires = new ArrayList<Questionnaire>();
-        for (QuestionnaireAddReq questionnaireReq : questionnaireListReq.getmQueList()) {
+        List<Questionnaire> questionnaires = new ArrayList<>();
+        for (Questionnaire questionnaireReq : questionnaireListReq.getQuestionnaires()) {
             Questionnaire questionnaire = new Questionnaire();
             questionnaire.setCategoryId(questionnaireReq.getCategoryId());
             questionnaire.setQuestionnaireName(questionnaireReq.getQuestionnaireName());
@@ -96,7 +96,7 @@ public class QuestionnaireController {
      * @return
      */
     @PostMapping(value = "/addQuestionnaire")
-    public Resp addQuestionnaires(@RequestBody QuestionnaireAddReq questionnaireReq) {
+    public Resp addQuestionnaire(@RequestBody Questionnaire questionnaireReq) {
         Resp resp = new Resp();
         if (null == questionnaireReq) {
             resp.setStatusCode(400);
@@ -190,4 +190,79 @@ public class QuestionnaireController {
         resp.setObject(questionnaireResps);
         return resp;
     }
+
+    /**
+     * 获取问卷详情（问题和选项）
+     *
+     * @param questionDetailsReq 请求参数实体
+     * @return
+     */
+    @PostMapping(value = "getQuestionDetails")
+    public Resp getQuestionDetails(@RequestBody GetQuestionDetailsReq questionDetailsReq) {
+        Resp resp = new Resp();
+        if (null == questionDetailsReq) {
+            resp.setStatusCode(400);
+            resp.setReason("参数不能为空");
+            return resp;
+        }
+        String token = questionDetailsReq.getToken();
+        String questionnaireId = questionDetailsReq.getQuestionnaireId();
+        if (TextUtil.isEmpty(token) || TextUtil.isEmpty(questionnaireId)) {
+            resp.setStatusCode(400);
+            resp.setReason("参数不能为空");
+            return resp;
+        }
+        //验证用户Token
+        Optional<Student> student = studentRepository.findById(token);
+        if (!student.isPresent()) {
+            resp.setStatusCode(400);
+            resp.setReason("token错误");
+            return resp;
+        }
+        //验证问卷id
+        Optional<Questionnaire> questionnaire = questionnaireRepository.findById(questionnaireId);
+        if (!questionnaire.isPresent()) {
+            resp.setStatusCode(400);
+            resp.setReason("问卷不存在，请检查问卷id");
+            return resp;
+        }
+        List<Question> questionList = questionRepository.findByQuestionnaireId(questionnaireId);
+        if (null == questionList) {
+            resp.setStatusCode(500);
+            resp.setReason("获取问题失败");
+            return resp;
+        }
+        if (questionList.size() < 1) {
+            resp.setStatusCode(200);
+            resp.setObject(questionList);
+            return resp;
+        }
+        GetQuestionDetailsResp detailsResp = new GetQuestionDetailsResp();
+        List<QuestionAndOptionsResp> quesDetail = new ArrayList<>();
+
+        for (Question question : questionList) {
+            String optionIds = question.getOptionIds();
+            if (TextUtil.isEmpty(optionIds)) {
+                break;
+            }
+            String[] optionIdArray = optionIds.split(",");
+            List<Long> optionIdList = new ArrayList<>();
+            for (String optionId : optionIdArray) {
+                if(!TextUtil.isEmpty(optionId)){
+                    optionIdList.add(Long.parseLong(optionId));
+                }
+            }
+            List<Option> optionList = optionRepository.findAllById(optionIdList);
+            if (null == optionList) {
+                break;
+            }
+            QuestionAndOptionsResp questionAddOption = new QuestionAndOptionsResp(question, optionList);
+            quesDetail.add(questionAddOption);
+        }
+        detailsResp.setQuesDetail(quesDetail);
+        resp.setStatusCode(200);
+        resp.setObject(detailsResp);
+        return resp;
+    }
+
 }

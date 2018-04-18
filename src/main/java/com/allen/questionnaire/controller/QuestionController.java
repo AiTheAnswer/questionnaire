@@ -48,6 +48,7 @@ public class QuestionController {
             resp.setReason("问题选项不能为空");
             return resp;
         }
+
         Iterable<Option> optionIterable = optionRepository.saveAll(optionList);
         if (null == optionIterable) {
             resp.setStatusCode(500);

@@ -1,18 +1,20 @@
 package com.allen.questionnaire.req;
 
+import com.allen.questionnaire.entity.Questionnaire;
+
 import java.util.List;
 
 /**
  * 添加问卷集合的请求对象
  */
 public class QuestionnaireListReq {
-    private List<QuestionnaireAddReq> mQueList;
+    private List<Questionnaire> questionnaires;
 
-    public List<QuestionnaireAddReq> getmQueList() {
-        return mQueList;
+    public List<Questionnaire> getQuestionnaires() {
+        return questionnaires;
     }
 
-    public void setmQueList(List<QuestionnaireAddReq> mQueList) {
-        this.mQueList = mQueList;
+    public void setQuestionnaires(List<Questionnaire> questionnaires) {
+        this.questionnaires = questionnaires;
     }
 }
