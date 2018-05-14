@@ -4,6 +4,7 @@ import java.util.List;
 
 public class QueRecordingReq {
     private String userId;
+    private String questionnaireId;
     private List<QueRecording> queRecordingList;
 
     public String getUserId() {
@@ -12,6 +13,14 @@ public class QueRecordingReq {
 
     public void setUserId(String userId) {
         this.userId = userId;
+    }
+
+    public String getQuestionnaireId() {
+        return questionnaireId;
+    }
+
+    public void setQustionnaireId(String questionnaireId) {
+        this.questionnaireId = questionnaireId;
     }
 
     public List<QueRecording> getQueRecordingList() {

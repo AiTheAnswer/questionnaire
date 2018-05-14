@@ -8,6 +8,6 @@ import java.util.List;
 public interface QueRecordingRepository extends CrudRepository<QuestionRecording,String>{
     //获取当前问卷是否被当前用户登录
     QuestionRecording findByUserIdAndQuestionnaireId(String userId,String queId);
-    //获取当前问卷的记录个数
+    //获取当前问卷的记录
     List<QuestionRecording> findByQuestionnaireId(String queId);
 }
