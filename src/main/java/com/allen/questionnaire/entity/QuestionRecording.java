@@ -17,17 +17,14 @@ public class QuestionRecording {
     @GeneratedValue
     private String id;
     @NotEmpty
-    @Column(name = "user_id")
-    private String userId;//用户id
-    @NotEmpty
     @Column(name = "question_id")
     private String questionId;//问题Id
     @NotEmpty
     @Column(name = "option_ids")
     private String optionIds;//选项id,多个选项用逗号隔开
     @NotEmpty
-    @Column(name = "questionnaire_id")
-    private String questionnaireId;
+    @Column(name = "record_id")
+    private String recordId;
 
     @Id
     @GeneratedValue(generator = "system-uuid")
@@ -38,14 +35,6 @@ public class QuestionRecording {
 
     public void setId(String id) {
         this.id = id;
-    }
-
-    public String getUserId() {
-        return userId;
-    }
-
-    public void setUserId(String userId) {
-        this.userId = userId;
     }
 
     public String getQuestionId() {
@@ -65,11 +54,11 @@ public class QuestionRecording {
         this.optionIds = optionIds;
     }
 
-    public String getQuestionnaireId() {
-        return questionnaireId;
+    public String getRecordId() {
+        return recordId;
     }
 
-    public void setQuestionnaireId(String questionnaireId) {
-        this.questionnaireId = questionnaireId;
+    public void setRecordId(String recordId) {
+        this.recordId = recordId;
     }
 }

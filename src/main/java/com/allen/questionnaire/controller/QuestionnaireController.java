@@ -34,6 +34,8 @@ public class QuestionnaireController {
     QueRecordingRepository recordingRepository;
     @Autowired
     OptionRepository optionRepository;
+    @Autowired
+    RecordNumberRepository recordNumberRepository;
 
     /**
      * 批量添加问卷
@@ -135,7 +137,7 @@ public class QuestionnaireController {
     }
 
     /**
-     * 获取问卷 通过类别id
+     * 获取问卷列表 通过类别id
      *
      * @param queGetReq
      * @return
@@ -180,10 +182,14 @@ public class QuestionnaireController {
             String queId = questionnaire.getId();
             List<Question> questions = questionRepository.findByQuestionnaireId(queId);
             questionnaireResp.setQuestionNumber(questions.size());
-            QuestionRecording queRecording = recordingRepository.findByUserIdAndQuestionnaireId(token, queId);
-            questionnaireResp.setUse(null != queRecording);
-            List<QuestionRecording> questionRecordings = recordingRepository.findByQuestionnaireId(queId);
-            questionnaireResp.setUseNumber(questionRecordings.size());
+            RecordNumber recordNumber = recordNumberRepository.findByQuestionnaireIdAndUserId(token, queId);
+            questionnaireResp.setUse(null != recordNumber);
+            List<RecordNumber> records = recordNumberRepository.findAllByQuestionnaireId(queId);
+            if (null == records) {
+                questionnaireResp.setUseNumber(0);
+            } else {
+                questionnaireResp.setUseNumber(records.size());
+            }
             questionnaireResps.add(questionnaireResp);
         }
         resp.setStatusCode(200);
@@ -192,7 +198,7 @@ public class QuestionnaireController {
     }
 
     /**
-     * 获取问卷详情（问题和选项）
+     * 获取某个问卷的详情（问题和选项）
      *
      * @param questionDetailsReq 请求参数实体
      * @return
@@ -248,14 +254,11 @@ public class QuestionnaireController {
             String[] optionIdArray = optionIds.split(",");
             List<Long> optionIdList = new ArrayList<>();
             for (String optionId : optionIdArray) {
-                if(!TextUtil.isEmpty(optionId)){
+                if (!TextUtil.isEmpty(optionId)) {
                     optionIdList.add(Long.parseLong(optionId));
                 }
             }
             List<Option> optionList = optionRepository.findAllById(optionIdList);
-            if (null == optionList) {
-                break;
-            }
             QuestionAndOptionsResp questionAddOption = new QuestionAndOptionsResp(question, optionList);
             quesDetail.add(questionAddOption);
         }

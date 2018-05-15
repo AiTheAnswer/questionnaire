@@ -2,6 +2,7 @@ package com.allen.questionnaire.controller;
 
 import com.allen.questionnaire.entity.QuestionRecording;
 import com.allen.questionnaire.entity.Questionnaire;
+import com.allen.questionnaire.entity.RecordNumber;
 import com.allen.questionnaire.entity.Student;
 import com.allen.questionnaire.repository.*;
 import com.allen.questionnaire.req.GetRecordingReq;
@@ -16,6 +17,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Optional;
 
@@ -25,13 +27,11 @@ public class QueRecordingController {
     @Autowired
     StudentRepository studentRepository;
     @Autowired
-    QuestionRepository questionRepository;
-    @Autowired
-    OptionRepository optionRepository;
-    @Autowired
     QueRecordingRepository queRecordingRepository;
     @Autowired
     QuestionnaireRepository questionnaireRepository;
+    @Autowired
+    RecordNumberRepository recordNumberRepository;
 
     @PostMapping(value = "/addRecordings")
     public Resp addRecordings(@RequestBody QueRecordingReq queRecordingReq) {
@@ -73,26 +73,36 @@ public class QueRecordingController {
             resp.setReason("问题记录不能为空");
             return resp;
         }
+        //添加记录
+        RecordNumber recordNumber = recordNumberRepository.findByQuestionnaireIdAndUserId(queRecordingReq.getQuestionnaireId(), queRecordingReq.getUserId());
+        if (null == recordNumber) {
+            recordNumber = new RecordNumber();
+            recordNumber.setQuestionnaireId(queRecordingReq.getQuestionnaireId());
+            recordNumber.setUserId(queRecordingReq.getUserId());
+            recordNumber = recordNumberRepository.save(recordNumber);
+        }
+
         List<QuestionRecording> questionRecordings = new ArrayList<>();
         for (QueRecording queRecording : queRecordingList) {
-            QuestionRecording recordingEntity = new QuestionRecording();
-            recordingEntity.setUserId(userId);
-            recordingEntity.setQuestionnaireId(queRecordingReq.getQuestionnaireId());
-            recordingEntity.setQuestionId(queRecording.getQuestionId());
-            StringBuffer stringBuffer = new StringBuffer();
-            List<String> optionIds = queRecording.getOptionIds();
-            for (String optionId : optionIds) {
-                stringBuffer.append(optionId);
-                stringBuffer.append(",");
+            QuestionRecording questionRecording = queRecordingRepository.findByRecordIdAndQuestionId(recordNumber.getId(), queRecording.getQuestionId());
+            if (questionRecording == null) {
+                questionRecording = new QuestionRecording();
+                questionRecording.setRecordId(recordNumber.getId());
+                questionRecording.setQuestionId(queRecording.getQuestionId());
             }
-            String options = stringBuffer.toString();
-            String substring = options.substring(0, options.length() - 1);
-            recordingEntity.setOptionIds(substring);
-            questionRecordings.add(recordingEntity);
+            String optionIds = queRecording.getOptionIds();
+            questionRecording.setOptionIds(optionIds);
+            questionRecordings.add(questionRecording);
         }
         Iterable<QuestionRecording> queRecordings = queRecordingRepository.saveAll(questionRecordings);
+        Iterator<QuestionRecording> iterator = queRecordings.iterator();
+        List<QuestionRecording> recordings = new ArrayList<>();
+        while (iterator.hasNext()) {
+            QuestionRecording next = iterator.next();
+            recordings.add(next);
+        }
         resp.setStatusCode(200);
-        resp.setObject(queRecordings);
+        resp.setObject(recordings);
         return resp;
     }
 
@@ -130,9 +140,14 @@ public class QueRecordingController {
                 return resp;
             }
         }
-        List<QuestionRecording> recordingList = queRecordingRepository.findByQuestionnaireId(questionnaireId);
+        List<RecordNumber> recordNumbers = recordNumberRepository.findAllByQuestionnaireId(questionnaireId);
+        List<QuestionRecording> questionRecordings = new ArrayList<>();
+        for (RecordNumber recordNumber : recordNumbers) {
+            List<QuestionRecording> recordingList = queRecordingRepository.findAllByRecordId(recordNumber.getId());
+            questionRecordings.addAll(recordingList);
+        }
         resp.setStatusCode(200);
-        resp.setObject(recordingList);
+        resp.setObject(questionRecordings);
         return resp;
     }
 

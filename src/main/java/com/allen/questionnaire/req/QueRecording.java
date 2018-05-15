@@ -1,10 +1,8 @@
 package com.allen.questionnaire.req;
 
-import java.util.List;
-
 public class QueRecording {
     private String questionId;
-    private List<String> optionIds;
+    private String optionIds;
 
     public String getQuestionId() {
         return questionId;
@@ -14,11 +12,11 @@ public class QueRecording {
         this.questionId = questionId;
     }
 
-    public List<String> getOptionIds() {
+    public String getOptionIds() {
         return optionIds;
     }
 
-    public void setOptionIds(List<String> optionIds) {
+    public void setOptionIds(String optionIds) {
         this.optionIds = optionIds;
     }
 }
