@@ -1,13 +1,14 @@
 package com.allen.questionnaire.controller;
 
-import com.allen.questionnaire.entity.QuestionRecording;
-import com.allen.questionnaire.entity.Questionnaire;
-import com.allen.questionnaire.entity.RecordNumber;
-import com.allen.questionnaire.entity.Student;
+import com.allen.questionnaire.entity.*;
 import com.allen.questionnaire.repository.*;
+import com.allen.questionnaire.req.GetQueStatisticalReq;
 import com.allen.questionnaire.req.GetRecordingReq;
 import com.allen.questionnaire.req.QueRecording;
 import com.allen.questionnaire.req.QueRecordingReq;
+import com.allen.questionnaire.resp.QueStatisticsListResp;
+import com.allen.questionnaire.resp.QuestionnaireResp;
+import com.allen.questionnaire.resp.QuestionnaireStatistics;
 import com.allen.questionnaire.resp.Resp;
 import com.allen.questionnaire.util.TextUtil;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -32,7 +33,18 @@ public class QueRecordingController {
     QuestionnaireRepository questionnaireRepository;
     @Autowired
     RecordNumberRepository recordNumberRepository;
+    @Autowired
+    QuestionRepository questionRepository;
+    @Autowired
+    OptionRepository optionRepository;
 
+
+    /**
+     * 提交问卷用户作答答案
+     *
+     * @param queRecordingReq
+     * @return
+     */
     @PostMapping(value = "/addRecordings")
     public Resp addRecordings(@RequestBody QueRecordingReq queRecordingReq) {
         Resp resp = new Resp();
@@ -106,50 +118,158 @@ public class QueRecordingController {
         return resp;
     }
 
+    /**
+     * 获取已作答的问卷列表
+     *
+     * @param recordingReq 用户Id
+     * @return
+     */
     @PostMapping(value = "/getRecordings")
-    public Resp getRecordingd(@RequestBody GetRecordingReq recordingReq) {
+    public Resp getRecordings(@RequestBody GetRecordingReq recordingReq) {
         Resp resp = new Resp();
         if (null == recordingReq) {
             resp.setStatusCode(400);
             resp.setReason("参数不能为空");
             return resp;
         }
-        String userId = recordingReq.getUserId();
+        String userId = recordingReq.getToken();
         if (TextUtil.isEmpty(userId)) {
             resp.setStatusCode(400);
-            resp.setReason("用户id不能为空");
+            resp.setReason("token不能为空");
             return resp;
         } else {
-            Optional<Student> students = studentRepository.findById(recordingReq.getUserId());
+            Optional<Student> students = studentRepository.findById(recordingReq.getToken());
             if (!students.isPresent()) {
                 resp.setStatusCode(400);
-                resp.setReason("用户id不存在");
+                resp.setReason("token不存在");
                 return resp;
             }
         }
-        String questionnaireId = recordingReq.getQuestionnaireId();
-        if (TextUtil.isEmpty(questionnaireId)) {
+        int categoryId = recordingReq.getCategoryId();
+        int type = recordingReq.getType();
+
+
+        Iterable<RecordNumber> recordNumbers = recordNumberRepository.findAll();
+        List<QuestionnaireResp> questionnaireRespList = new ArrayList<>();
+        for (RecordNumber recordNumber : recordNumbers) {
+            Optional<Questionnaire> questionnaires = questionnaireRepository.findById(recordNumber.getQuestionnaireId());
+            if (questionnaires.isPresent()) {
+                Questionnaire questionnaire = questionnaires.get();
+                if (categoryId != 0) {
+                    if (categoryId != questionnaire.getCategoryId()) {
+                        continue;
+                    }
+                }
+                if (type != 0) {
+                    if (type == 1) {//当前用户作答
+                        if (!userId.equals(recordNumber.getUserId())) {
+                            continue;
+                        }
+                    } else {//非当前用户作答
+                        if (userId.equals(recordNumber.getUserId())) {
+                            continue;
+                        }
+                    }
+                }
+                QuestionnaireResp questionnaireResp = new QuestionnaireResp();
+                questionnaireResp.setId(questionnaire.getId());
+                questionnaireResp.setQuestionnaireName(questionnaire.getQuestionnaireName());
+                questionnaireResp.setCategoryId(questionnaire.getCategoryId());
+                String queId = questionnaire.getId();
+                List<Question> questions = questionRepository.findByQuestionnaireId(queId);
+                questionnaireResp.setQuestionNumber(questions.size());
+                questionnaireResp.setUse(recordNumber.getUserId().equals(userId));
+                List<RecordNumber> records = recordNumberRepository.findAllByQuestionnaireId(queId);
+                if (null == records) {
+                    questionnaireResp.setUseNumber(0);
+                } else {
+                    questionnaireResp.setUseNumber(records.size());
+                }
+
+                questionnaireRespList.add(questionnaireResp);
+            }
+        }
+        resp.setStatusCode(200);
+        resp.setObject(questionnaireRespList);
+        return resp;
+    }
+
+
+    @PostMapping(value = "/getQueStatistical")
+    public Resp getQueStatistical(@RequestBody GetQueStatisticalReq statisticalReq) {
+        Resp resp = new Resp();
+        if (null == statisticalReq) {
             resp.setStatusCode(400);
-            resp.setReason("问卷id不能为空");
+            resp.setReason("参数不能为空");
+            return resp;
+        }
+        String userId = statisticalReq.getToken();
+        if (TextUtil.isEmpty(userId)) {
+            resp.setStatusCode(400);
+            resp.setReason("参数token不能为空");
             return resp;
         } else {
-            Optional<Questionnaire> questionnaires = questionnaireRepository.findById(questionnaireId);
-            if (!questionnaires.isPresent()) {
+            Optional<Student> student = studentRepository.findById(userId);
+            if (!student.isPresent()) {
                 resp.setStatusCode(400);
-                resp.setReason("w问卷id不存在");
+                resp.setReason("参数token错误");
+                return resp;
+            }
+        }
+        String questionnaireId = statisticalReq.getQuestionnaireId();
+        if (TextUtil.isEmpty(questionnaireId)) {
+            resp.setStatusCode(400);
+            resp.setReason("参数questionnaireId不能为空");
+            return resp;
+        } else {
+            Optional<Questionnaire> questionnaire = questionnaireRepository.findById(questionnaireId);
+            if (!questionnaire.isPresent()) {
+                resp.setStatusCode(400);
+                resp.setReason("参数questionnaireId错误");
                 return resp;
             }
         }
         List<RecordNumber> recordNumbers = recordNumberRepository.findAllByQuestionnaireId(questionnaireId);
-        List<QuestionRecording> questionRecordings = new ArrayList<>();
+        QueStatisticsListResp statisticsListResp = new QueStatisticsListResp();
         for (RecordNumber recordNumber : recordNumbers) {
-            List<QuestionRecording> recordingList = queRecordingRepository.findAllByRecordId(recordNumber.getId());
-            questionRecordings.addAll(recordingList);
+            List<QuestionRecording> questionRecordings = queRecordingRepository.findAllByRecordId(recordNumber.getId());
+            for (QuestionRecording questionRecording : questionRecordings) {
+                String questionId = questionRecording.getQuestionId();
+                Optional<Question> optional = questionRepository.findById(questionId);
+                if (optional.isPresent()) {
+                    Question question = optional.get();
+                    String optionIds = question.getOptionIds();
+                    List<Option> optionList = getOptions(optionIds);
+                    String selectOptionIds = questionRecording.getOptionIds();
+                    List<Option> selectOptionList = getOptions(selectOptionIds);
+                    statisticsListResp.addQueStatistics(question, optionList, selectOptionList);
+                }
+
+            }
         }
         resp.setStatusCode(200);
-        resp.setObject(questionRecordings);
+        resp.setObject(statisticsListResp);
         return resp;
     }
 
+
+    /**
+     * 获取问题选项集合根据选项id字符串，多个id之间用逗号隔开
+     *
+     * @param optionIds id串
+     * @return 选项集合
+     */
+    public List<Option> getOptions(String optionIds) {
+        List<Option> optionList = new ArrayList<>();
+        String[] optionIdArray = optionIds.split(",");
+        for (String id : optionIdArray) {
+            Optional<Option> optional = optionRepository.findById(Long.parseLong(id));
+            if (optional.isPresent()) {
+                Option option = optional.get();
+                optionList.add(option);
+            }
+        }
+        return optionList;
+    }
 
 }

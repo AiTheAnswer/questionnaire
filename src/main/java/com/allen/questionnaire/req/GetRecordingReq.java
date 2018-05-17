@@ -6,22 +6,31 @@ package com.allen.questionnaire.req;
  * @author Renjy
  */
 public class GetRecordingReq {
-    private String userId;
-    private String questionnaireId;
+    private String token;
+    private int categoryId;
+    private int type;
 
-    public String getUserId() {
-        return userId;
+    public String getToken() {
+        return token;
     }
 
-    public void setUserId(String userId) {
-        this.userId = userId;
+    public void setToken(String token) {
+        this.token = token;
     }
 
-    public String getQuestionnaireId() {
-        return questionnaireId;
+    public int getCategoryId() {
+        return categoryId;
     }
 
-    public void setQuestionnaireId(String questionnaireId) {
-        this.questionnaireId = questionnaireId;
+    public void setCategoryId(int categoryId) {
+        this.categoryId = categoryId;
+    }
+
+    public int getType() {
+        return type;
+    }
+
+    public void setType(int type) {
+        this.type = type;
     }
 }

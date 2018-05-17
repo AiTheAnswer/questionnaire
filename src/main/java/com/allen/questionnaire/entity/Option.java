@@ -4,12 +4,13 @@ import org.hibernate.annotations.GenericGenerator;
 
 import javax.persistence.*;
 import javax.validation.constraints.NotEmpty;
+import java.io.Serializable;
 
 /**
  * 问题选项的实体类
  */
 @Entity(name = "options")
-public class Option {
+public class Option implements Serializable {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;

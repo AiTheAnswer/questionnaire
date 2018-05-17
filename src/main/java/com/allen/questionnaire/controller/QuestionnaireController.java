@@ -182,7 +182,7 @@ public class QuestionnaireController {
             String queId = questionnaire.getId();
             List<Question> questions = questionRepository.findByQuestionnaireId(queId);
             questionnaireResp.setQuestionNumber(questions.size());
-            RecordNumber recordNumber = recordNumberRepository.findByQuestionnaireIdAndUserId(token, queId);
+            RecordNumber recordNumber = recordNumberRepository.findByQuestionnaireIdAndUserId(queId,token);
             questionnaireResp.setUse(null != recordNumber);
             List<RecordNumber> records = recordNumberRepository.findAllByQuestionnaireId(queId);
             if (null == records) {
