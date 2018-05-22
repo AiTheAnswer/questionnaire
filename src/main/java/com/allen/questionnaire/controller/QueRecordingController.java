@@ -168,6 +168,8 @@ public class QueRecordingController {
                     } else {//非当前用户作答
                         if (userId.equals(recordNumber.getUserId())) {
                             continue;
+                        } else if (containsQuestionnaire(recordNumbers, questionnaire.getId(), userId)) {
+                            continue;
                         }
                     }
                 }
@@ -185,12 +187,54 @@ public class QueRecordingController {
                 } else {
                     questionnaireResp.setUseNumber(records.size());
                 }
-
-                questionnaireRespList.add(questionnaireResp);
+                //过滤掉重复的问卷
+                QuestionnaireResp contains = isContains(questionnaireRespList, questionnaireResp);
+                if (contains != null) {
+                    if (questionnaireResp.isUse()) {
+                        contains.setUse(true);
+                    }
+                } else {
+                    questionnaireRespList.add(questionnaireResp);
+                }
             }
         }
         resp.setStatusCode(200);
         resp.setObject(questionnaireRespList);
+        return resp;
+    }
+
+    /**
+     * 判断当前用户是否作答过改问卷
+     *
+     * @param recordNumbers
+     * @param id
+     * @param userId
+     * @return
+     */
+    private boolean containsQuestionnaire(Iterable<RecordNumber> recordNumbers, String id, String userId) {
+        for (RecordNumber recordNumber : recordNumbers) {
+            if (recordNumber.getUserId().equals(userId) && recordNumber.getQuestionnaireId().equals(id)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * 已查询出的集合中是否已经包含同一个问卷
+     *
+     * @param questionnaireRespList 问卷集合
+     * @param questionnaireResp     当前问卷
+     * @return
+     */
+    private QuestionnaireResp isContains(List<QuestionnaireResp> questionnaireRespList, QuestionnaireResp questionnaireResp) {
+        QuestionnaireResp resp = null;
+        for (QuestionnaireResp questionnaireResp1 : questionnaireRespList) {
+            if (questionnaireResp1.getId().equals(questionnaireResp.getId())) {
+                resp = questionnaireResp1;
+                break;
+            }
+        }
         return resp;
     }
 

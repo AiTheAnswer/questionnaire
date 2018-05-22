@@ -1,7 +1,6 @@
 package com.allen.questionnaire.resp;
 
 import com.allen.questionnaire.entity.Question;
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 import java.io.Serializable;
 import java.util.List;
